@@ -1,0 +1,65 @@
+<template>
+    <view class="weui-form-preview mb10">
+        <view class="weui-form-preview__hd">
+            <view class="weui-form-preview__item">
+                <view class="weui-form-preview__label">{{item.customer.name}}</view>
+                <view class="weui-form-preview__value_in-hd" wx:if="{{item.state === 1}}">待入住</view>
+                <view class="weui-form-preview__value_in-hd" wx:elif="{{item.state === 2}}">待结算</view>
+                <view class="weui-form-preview__value_in-hd" style="color:#e33" wx:elif="{{item.state === 3}}">待退款</view>
+                <view class="weui-form-preview__value_in-hd muted" wx:else>已完成</view>
+            </view>
+        </view>
+        <view class="weui-form-preview__bd">
+            <view class="weui-form-preview__item">
+                <view class="weui-form-preview__label">房间类型</view>
+                <view class="weui-form-preview__value">{{item.room.categoryName}}</view>
+            </view>
+            <view class="weui-form-preview__item">
+                <view class="weui-form-preview__label">房间号码</view>
+                <view class="weui-form-preview__value">{{item.room.number}}</view>
+            </view>
+            <view class="weui-form-preview__item">
+                <view class="weui-form-preview__label">当前价格</view>
+                <view class="weui-form-preview__value">¥{{item.room.price}}</view>
+            </view>
+            <view class="weui-form-preview__item">
+                <view class="weui-form-preview__label">入住时间</view>
+                <view class="weui-form-preview__value">{{item.customer.checkin_time}}</view>
+            </view>
+            <view class="weui-form-preview__item">
+                <view class="weui-form-preview__label">离店时间</view>
+                <view class="weui-form-preview__value">{{item.customer.checkout_time}}</view>
+            </view>
+            <view class="weui-form-preview__item">
+                <view class="weui-form-preview__label">证件号码</view>
+                <view class="weui-form-preivew__value">{{item.customer.idcard}}</view>
+            </view>
+            <view class="weui-form-preview__item">
+                <view class="weui-form-preview__label">订单编号</view>
+                <view class="weui-form-preview__value">{{item.id}}</view>
+            </view>
+        </view>
+        <view class="weui-form-preview__ft" wx:if="{{item.state !== 0}}">
+            <view class="weui-form-preview__btn weui-form-preview__btn_primary" @tap="tap">
+                <block wx:if="{{item.state === 1}}">入住办理</block>
+                <block wx:elif="{{item.state === 2}}">结算办理</block>
+                <block wx:elif="{{item.state === 3}}">退款办理</block>
+            </view>
+        </view>
+    </view>
+</template>
+<script>
+import wepy from 'wepy'
+
+export default class OrderItem extends wepy.component {
+  props = {
+    item: {}
+  };
+
+  methods = {
+    tap() {
+      this.$emit('tap', this.item)
+    }
+  };
+}
+</script>

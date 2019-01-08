@@ -1,0 +1,50 @@
+<template>
+    <repeat for="{{numbers}}" index="index" item="item">
+        <Number :info.sync="item" :index.sync="index" @remove.user="remove" @change.user="change"/>
+    </repeat>
+    <view class="add-btn row-end" @tap="add">
+        <image class="icon" src="/images/icons/plus.png"></image>
+        <text class="ml10">添加房间</text>
+    </view>
+</template>
+
+<script>
+
+import wepy from 'wepy'
+import Number from './number'
+
+export default class NumberList extends wepy.component {
+  props = {
+    numbers: {
+      twoWay: true
+    }
+  };
+  data = {
+  };
+  components = {
+    Number: Number
+  };
+  methods = {
+    add() {
+      this.numbers.push({})
+    },
+    remove(index) {
+      this.numbers.splice(index, 1)
+    },
+    change(info) {
+      this.numbers[info.index][info.fieldName] = info.fieldValue
+    }
+  };
+
+  events = {};
+
+  onLoad() {}
+}
+</script>
+
+<style lang="scss">
+@import "../../styles/variable";
+.add-btn{
+    padding: 10px 20px;
+}
+</style>

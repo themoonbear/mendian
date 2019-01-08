@@ -1,0 +1,141 @@
+<style lang="scss" src="./styles/zent.scss"/>
+<style lang="scss" src="./styles/base.scss"/>
+
+<style lang="scss">
+  @import "./styles/weui";
+  @import "./styles/weui-extend";
+</style>
+
+<script>
+import wepy from 'wepy'
+import 'wepy-async-function'
+
+import { setStore } from 'wepy-redux'
+import configStore from './store'
+
+const store = configStore()
+setStore(store)
+
+export default class extends wepy.app {
+  config = {
+    pages: [
+      'pages/login',
+      'pages/home/index',
+      'pages/shop/list',
+      'pages/shop/info',
+      'pages/order/list',
+      'pages/room/type_list',
+      'pages/room/type_info',
+      'pages/room/state_list',
+      'pages/room/state_info',
+      'pages/room/checkin',
+      'pages/staff/list',
+      'pages/staff/info',
+      'pages/customer/list',
+      'pages/customer/info',
+      'pages/me/index'
+    ],
+    window: {
+      backgroundTextStyle: 'dark',
+      backgroundColor: '#F5F5F5',
+      navigationBarBackgroundColor: '#1296db'
+    },
+    tabBar: {
+      color: '#666',
+      selectedColor: '#1296db',
+      borderStyle: 'white',
+      backgroundColor: '#fafafa',
+      list: [
+        {
+          iconPath: 'images/tab/manage.png',
+          selectedIconPath: 'images/tab/manage-active.png',
+          'pagePath': 'pages/home/index',
+          'text': '首页'
+        },
+        {
+          iconPath: 'images/tab/user.png',
+          selectedIconPath: 'images/tab/user-active.png',
+          pagePath: 'pages/me/index',
+          'text': '我'
+        }
+      ]
+    }
+  }
+
+  globalData = {
+    userInfo: null,
+    auth: {},
+    shop: {},
+    appCode: '',
+    baseUrl: 'https://www.easy-mock.com/mock/5c17622055d50372367852de/mendian',
+    version: 'v1.0.0'
+  }
+
+  constructor () {
+    super()
+    this.use('requestfix')
+    this.use('promisify')
+    this.intercept('request', {
+      config(p) {
+        p.header = this.createAuthHeader()
+        return p
+      }
+    })
+    this.intercept('uploadFile', {
+      config(p) {
+        p.header = this.createAuthHeader()
+        return p
+      },
+      success(p) {
+        return p.data
+      }
+    })
+  }
+
+  createAuthHeader() {
+    const loginCode = wepy.$instance.globalData.auth.login_code
+    const shopId = wepy.$instance.globalData.auth.shop_id
+    const header = {}
+    if (loginCode) {
+      header['login_code'] = loginCode
+    }
+    if (shopId) {
+      header['shop_id'] = shopId
+    }
+    return header
+  }
+
+  onLaunch() {
+    const ext = wepy.getExtConfigSync()
+    Object.assign(wepy.$instance.globalData, ext)
+    this.syncStoreConfig({'login_code': 'login_code'}, 'login_code')
+    this.syncStoreConfig({'shop_id': 'shop_id'}, 'shop_id')
+  }
+
+  syncStoreConfig(obj, key) {
+    const value = wepy.getStorageSync(obj[key])
+    if (value !== '') {
+      wepy.$instance.globalData.auth[key] = value
+    }
+  }
+
+  getUserInfo(cb) {
+    const that = this
+    if (this.globalData.userInfo) {
+      return this.globalData.userInfo
+    }
+    wepy.getUserInfo({
+      success (res) {
+        that.globalData.userInfo = res.userInfo
+        cb && cb(res.userInfo)
+      }
+    })
+  }
+  setShopInfo(shop) {
+    this.globalData.shop = shop
+  }
+  getShopInfo() {
+    return this.globalData.shop
+  }
+}
+</script>

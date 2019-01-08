@@ -1,0 +1,84 @@
+<template>
+    <view class="container" wx:if="{{init}}">
+        <view class="idcard">
+            <image mode="scaleToFill" src="{{customer.img_idcard}}"/>
+        </view>
+        <view class="hr"/>
+        <view class="weui-cells__title">个人信息</view>
+        <view class="weui-cells weui-cells_after-title">
+            <view class="weui-cell">
+                <view class="weui-cell__bd">姓名</view>
+                <view class="weui-cell__ft">{{customer.name}}</view>
+            </view>
+            <view class="weui-cell">
+                <view class="weui-cell__bd">性别</view>
+                <view class="weui-cell__ft">{{customer.gender}}</view>
+            </view>
+            <view class="weui-cell">
+                <view class="weui-cell__bd">证件号码</view>
+                <view class="weui-cell__ft">{{customer.idcard}}</view>
+            </view>
+            <view class="weui-cell">
+                <view class="weui-cell__bd">联系电话</view>
+                <view class="weui-cell__ft">{{customer.phone}}</view>
+            </view>
+        </view>
+        <view class="hr"/>
+        <view class="weui-cells__title">入住信息</view>
+        <view class="weui-cells weui-cells_after-title">
+            <view class="weui-cell">
+                <view class="weui-cell__bd">总计入住次数</view>
+                <view class="weui-cell__ft">{{order.checkin_count}}次</view>
+            </view>
+            <view class="weui-cell">
+                <view class="weui-cell__bd">最近入住房间</view>
+                <view class="weui-cell__ft">{{order.last_room_categoryName}} | {{order.last_room_number}}</view>
+            </view>
+            <view class="weui-cell">
+                <view class="weui-cell__bd">最近入住时间</view>
+                <view class="weui-cell__ft">{{order.last_checkin_time}}</view>
+            </view>
+            <view class="weui-cell">
+                <view class="weui-cell__bd">最近离店时间</view>
+                <view class="weui-cell__ft">{{order.last_checkout_time}}</view>
+            </view>
+        </view>
+    </view>
+</template>
+
+<script>
+
+import wepy from 'wepy'
+import base from '@/mixins/base'
+import customer from '@/api/customer'
+
+export default class CustomerInfo extends wepy.page {
+  def = {
+    init: false,
+    customer: {},
+    order: {}
+  };
+
+  data = {...this.def};
+
+  async onLoad(option) {
+    const [customerInfo, orderInfo] = await Promise.all([customer.info(option.id), customer.lastOrder(option.id)])
+    this.customer = customerInfo
+    this.order = orderInfo
+    this.loaded()
+  };
+
+  mixins = [base];
+}
+</script>
+
+<style lang="scss">
+@import "../../styles/variable";
+.idcard{
+    height: rpx(375);
+    image{
+        height: rpx(375);
+        width: 100%;
+    }
+}
+</style>

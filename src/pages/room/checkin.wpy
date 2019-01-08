@@ -1,0 +1,165 @@
+<template>
+    <Tips/>
+    <view class="container" wx:if="{{init}}">
+        <form @submit="submit">
+            <ImageUploader :pictures.sync="pictures" otherClass="shop-swiper" top="260" title="添加身份证件" order="false" maxSize="1"/>
+            <view class="hr"/>
+            <view class="weui-cells weui-cells-form">
+                <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">联系电话</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" id="phone" name="phone" placeholder="请输入联系电话" @change="input" value="{{input.phone}}"/>
+                    </view>
+                </view>
+                <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">入住时间</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <picker mode="date" id="checkin_time" name="checkin_time" @change="input" value="{{input.checkin_time}}">
+                            <view class="weui-input muted">{{input.checkin_time || '请选择入住时间'}}</view>
+                        </picker>
+                    </view>
+                </view>
+                <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">离店时间</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <picker mode="date" id="checkout_time" name="checkout_time" @change="input" value="{{input.checkout_time}}">
+                            <view class="weui-input muted">{{input.checkout_time || '请选择离店时间'}}</view>
+                        </picker>
+                    </view>
+                </view>
+                <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">押金(¥)</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" id="deposit" name="deposit" value="{{input.deposit || 0}}" @change="input"/>
+                    </view>
+                </view>
+                <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">房费(¥)</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" id="price" name="price" value="{{input.price || 0}}" @change="input"/>
+                    </view>
+                </view>                
+                <view class="weui-cell">
+                    <view class="weui-cell__bd">
+                        <view class="weui-label">已付款</view>
+                    </view>
+                    <view class="weui-cell__ft">
+                        <switch name="paid" id="paid" @change="input"/>
+                    </view>
+                </view>                            
+            </view>
+            <ActionPanel opt="create"/>
+        </form>
+    </view>
+</template>
+
+<script>
+
+import wepy from 'wepy'
+import base from '@/mixins/base'
+import input from '@/mixins/input'
+import FormTips from '@/components/weui/tips'
+import ImageUploader from '@/components/goods/image_uploader'
+import ActionPanel from '@/components/common/action_panel'
+import Tips from '@/utils/Tips'
+import room from '@/api/room'
+
+export default class Checkin extends wepy.page {
+  def = {
+    init: false,
+    pictures: [],
+    info: {}
+  };
+
+  data = {...this.def};
+
+  async onLoad(option) {
+    this.info.rid = option.rid
+    this.loaded()
+  };
+
+  methods = {
+    async submit({detail}) {
+      Object.assign(this.info, detail.value)
+      if (!this.validate()) {
+        return
+      }
+      let data = {images: []}
+      Tips.loading('提交中')
+      for (let picture of this.pictures) {
+        if (picture.temp) {
+          const result = await room.image(picture.url)
+          const image = JSON.parse(result)
+          data.images.push(image)
+        } else {
+          data.images.push(picture)
+        }
+      }
+      this.info.images = data.images
+      await room.checkin(this.info)
+      await Tips.success('提交成功!')
+      wepy.navigateBack()
+    }
+  };
+
+  validate() {
+    const rules = [
+      {
+        value: this.input.phone,
+        method: 'required',
+        message: '联系电话不能为空'
+      },
+      {
+        value: this.input.phone,
+        method: 'tel',
+        message: '不是有效电话号码'
+      },
+      {
+        value: this.input.checkin_time,
+        method: 'required',
+        message: '入住时间不能为空'
+      },
+      {
+        value: this.input.checkout_time,
+        method: 'required',
+        message: '离店时间不能为空'
+      }
+    ]
+    return this.check(rules)
+  };
+
+  components = {
+    Tips: FormTips,
+    ActionPanel: ActionPanel,
+    ImageUploader: ImageUploader
+  };
+
+  mixins = [base, input];
+
+  config = {
+    navigationBarTitleText: '入住办理'
+  };
+}
+</script>
+
+<style lang="scss">
+  @import "../../styles/variable";
+    .shop-swiper{
+        height: rpx(375);
+        width: rpx(750);
+        image {
+            width: 100%;
+            height: rpx(375);
+        }
+    }
+</style>

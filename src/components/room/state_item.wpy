@@ -1,0 +1,86 @@
+<template>
+    <view class="item-box column" @tap="tap">
+        <view class="room-box row">
+            <image class="item-image" src="{{room.avatar}}"/>
+            <view class="info-box column">
+                <view class="title-box">
+                    <text class="title">房间: {{room.name}}</text>
+                </view>
+                <view class="detail-box row">
+                    <text class="major lg">{{room.categoryName}}</text>
+                    <text class="muted xs ml10">{{room.floor}}层</text>
+                </view>
+            </view>
+            <view class="weui-cell__ft_in-access"/>
+        </view>
+        <view class="row mt10" wx:if="{{room.people.length !==  0}}">
+            <block wx:for="{{room.people}}" wx:key="idcard">
+                <view>
+                    <image class="icon-lg" src="/images/icons/idcard.png"/>
+                    <text class="muted mr20 xs">{{item.name}}</text>
+                </view>
+            </block>
+        </view>
+    </view>
+</template>
+
+<script>
+
+import wepy from 'wepy'
+
+export default class StateItem extends wepy.component {
+  props = {
+    room: {}
+  };
+
+  data = {};
+
+  methods = {
+    tap() {
+      this.$emit('tap', this.room.id)
+    }
+  };
+}
+
+</script>
+
+<style lang="scss">
+
+@import "../../styles/variable";
+
+.item-box {
+    background-color: #fff;
+    position: relative;
+    border-bottom: $border;
+    padding: 10rpx;
+    .item-action {
+        border-top: $border;
+        height: 90rpx;
+    }
+    .room-box{
+        padding-bottom: 10rpx;
+        border-bottom: 1px dashed #dfdfdf;
+        $image-size: 130rpx;
+
+        .item-image{
+            height: $image-size;
+            width: $image-size;
+            border: $border;
+            border-radius: 8px;
+        }
+        .detail-box {
+            align-items: flex-end;
+        }
+        .info-box {
+            justify-content: space-between;
+            height: $image-size;
+            flex: 1;
+            margin-left: 20rpx;
+
+            .title{
+                line-height: 30rpx;
+            }
+        }
+    }
+}
+</style>

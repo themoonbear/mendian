@@ -1,0 +1,75 @@
+<template>
+    <view class="container" wx:if="{{init}}">
+        <view class="column">
+            <view class="title-box row-between">
+                <text class="muted lg">房型列表</text>
+            </view>
+            <view class="list-box column">
+                <repeat for="{{rooms}}" key="index" index="index" item="item">
+                    <navigator url="./type_info?rid={{item.id}}&sid={{item.sid}}">
+                        <RoomItem :room.sync="item"/>
+                    </navigator>
+                </repeat>
+            </view>
+            <Placeholder message="您还有添加房型" :list.sync="rooms"/>
+            <AddBar btnText="添加房型" @tap.user="add"/>
+        </view>
+    </view>
+</template>
+
+<script>
+
+import wepy from 'wepy'
+import room from '@/api/room'
+import base from '@/mixins/base'
+import Tips from '@/utils/Tips'
+import RoomItem from '@/components/room/item'
+import Placeholder from '@/components/common/placeholder'
+import AddBar from '@/components/common/add_bar'
+
+export default class RoomList extends wepy.page {
+  def = {
+    rooms: [],
+    init: false
+  };
+
+  data = {...this.def};
+
+  async onLoad(option) {
+    this.rooms = await room.list(option.sid)
+    this.loaded()
+  };
+
+  method = {};
+
+  events = {
+    async add() {
+      Tips.loading()
+      this.$navigate('./type_info')
+    }
+  };
+
+  mixins = [base];
+
+  config = {
+    navigationBarTitleText: '房型管理'
+  };
+
+  components = {
+    RoomItem: RoomItem,
+    Placeholder: Placeholder,
+    AddBar: AddBar
+  };
+}
+</script>
+
+<style lang="scss">
+    @import "../../styles/variable";
+    .title-box{
+        padding: 15rpx 30rpx;
+    }
+    .list-box{
+        background: white;
+        border-bottom: $border;
+    }
+</style>

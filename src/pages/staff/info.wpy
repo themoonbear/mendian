@@ -1,0 +1,146 @@
+<template>
+    <Tips/>
+    <view class="container" wx:if="{{init}}">
+        <form @submit="submit">
+            <view class="weui-cells weui-cells-form">
+                <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">姓名</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" name="name" value="{{staff.name}}" id="name" @change="change" placeholder="请输入姓名"/>
+                    </view>
+                </view>
+                <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">手机号码</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" name="phone" id="phone" @change="change" value="{{staff.phone}}" placeholder="请输入手机号码"/>
+                    </view>
+                </view>
+                <view class="weui-cell weui-cells_after-title">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">性别</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <radio-group class="radio-group row" @change="change" id="gender" name="gender">
+                            <label class="radio row mr20" wx:key="index" wx:for="{{item}}">
+                                <radio value="{{item.value}}" checked="{{staff.gender == item.value}}"/>{{item.name}}
+                            </label>
+                        </radio-group>
+                    </view>
+                </view>
+                <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">生日</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <picker mode="date" id="birthday" name="birthday" @change="change" value="{{staff.birthday}}">
+                            <view class="weui-input muted">{{staff.birthday || '请选择生日'}}</view>
+                        </picker>
+                    </view>
+                </view>
+            </view>
+            <ActionPanel :opt.sync="opt" @remove.user="remove"/>
+        </form>
+    </view>
+</template>
+<script>
+import wepy from 'wepy'
+import base from '@/mixins/base'
+import input from '@/mixins/input'
+import staff from '@/api/staff'
+import ActionPanel from '@/components/common/action_panel'
+import Tips from '@/utils/Tips'
+import FormTips from '@/components/weui/tips'
+
+export default class StaffInfo extends wepy.page {
+  def = {
+    init: false,
+    opt: 'create',
+    item: [
+        {name: '男', value: 1},
+        {name: '女', value: 0}
+    ],
+    staff: {}
+  };
+
+  data = {...this.def};
+
+  async onLoad(option) {
+    this.staff = await staff.info(option.id)
+    if (option.id) {
+      this.opt = 'edit'
+    }
+    this.loaded()
+  };
+
+  methods = {
+    change (e) {
+      this.staff[e.currentTarget.id] = e.detail.value
+    },
+    async submit({detail}) {
+      Object.assign(this.staff, detail.value)
+      if (!this.validate()) {
+        return
+      }
+      try {
+        await staff.save(this.staff)
+        await Tips.success('提交成功')
+        wepy.navigateBack()
+      } catch (error) {
+        this.tips(error.message)
+        Tips.loaded()
+      }
+    },
+    async remove() {
+      const res = await Tips.confirm('确定要删除该店员？')
+      if (!res) return
+      await staff.remove(this.staff.id)
+      await Tips.success('删除成功')
+      wepy.navigateBack()
+    }
+  };
+
+  validate () {
+    const rules = [
+      {
+        value: this.staff.name,
+        method: 'required',
+        message: '姓名不能为空'
+      },
+      {
+        value: this.staff.phone,
+        method: 'required',
+        message: '电话不能为空'
+      },
+      {
+        value: this.staff.phone,
+        method: 'tel',
+        message: '不是有效电话号码'
+      },
+      {
+        value: this.staff.gender,
+        method: 'required',
+        message: '性别不能为空'
+      },
+      {
+        value: this.staff.birthday,
+        method: 'required',
+        message: '生日不能为空'
+      }
+    ]
+    return this.check(rules)
+  };
+  components = {
+    Tips: FormTips,
+    ActionPanel: ActionPanel
+  };
+
+  mixins = [base, input];
+}
+</script>
+<style lang="scss">
+@import "../../styles/variable";
+</style>

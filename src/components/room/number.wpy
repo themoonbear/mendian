@@ -1,0 +1,70 @@
+<template>
+    <view class="number-box row mt10">
+        <view class="info-box">
+            <view class="weui-cells-form">
+                <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">房间号码</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" id="number" @blur="input({{index}})" value="{{info.number}}" placeholder="请输入房间号码"/>
+                    </view>
+                </view>
+                <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">房间楼层</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" id="floor" @blur="input({{index}})" value="{{info.floor}}" placeholder="请输入房间楼层"/>
+                    </view>
+                </view>
+            </view>
+        </view>
+        <view class="opt-box column-center" @tap="remove({{index}})">
+            <image class="icon" src="/images/icons/minus.png" wx:if="{{index !== 0}}"/>
+        </view>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+export default class RoomNumber extends wepy.component {
+  props = {
+    index: {},
+    info: {}
+  };
+  data = {};
+  methods = {
+    input(index, e) {
+      const fieldName = e.currentTarget.id
+      const fieldValue = e.detail.value
+      this.$emit('change', {index, fieldName, fieldValue})
+    },
+    remove(index) {
+      this.$emit('remove', index)
+    }
+  };
+  events = {};
+  onLoad() {}
+}
+</script>
+
+<style lang="scss">
+
+@import "../../styles/variable";
+
+.number-box{
+    border-bottom: $border;
+    background-color: #fff;
+    .info-box{
+        flex: 1;
+        .weui-cells-form{
+            border-bottom: none;
+        }
+    }
+    .opt-box{
+        width: 100rpx;
+        height: 100%;
+    }
+}
+</style>

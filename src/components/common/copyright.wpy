@@ -1,0 +1,26 @@
+<template>
+  <view class="weui-footer {{bottom == 'true' ? 'weui-footer_fixed-bottom' : 'mt20'}}">
+    <view class="weui-footer__links">
+      <button plain="true" open-type="contact" class="weui-footer__link">Moonbear Studio 提供技术支持</button>
+    </view>
+    <view class="weui-footer__text">Copyright © 2018 moonbear.cn {{version}}</view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class Copyright extends wepy.component {
+    props = {
+      bottom: {
+        default: 'true'
+      },
+      version: {
+        default: '1.0.0'
+      }
+    };
+}
+</script>
+
+<style lang="scss">
+  @import "../../styles/variable";
+</style>

@@ -1,0 +1,258 @@
+<template>
+    <Tips/>
+    <view class="container" wx:if="{{init}}">
+        <form @submit="submit">
+            <ImageUploader :pictures.sync="pictures" otherClass="shop-swiper" top="260" maxSize="6" @toggle.user="toggle"/>
+            <view class="hr"/>
+            <view class="weui-cells weui-cells-form">
+                <view class="weui-cell">
+                    <view class="weui-cell__bd">房间类型</view>
+                    <view class="weui-cell__ft" @tap="showInner">{{room.categoryName || '请选择房间类型'}}</view>
+                </view>
+                <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">日房价(¥)</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" name="dayPrice" id="dayPrice" value="{{room.dayPrice || 0}}" @change="update"/>
+                    </view>
+                </view>
+                <view class="weui-cell" weui-cell_input wx:if="{{parseInt(shop.monthPay) !== 0}}">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">月房价(¥)</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" name="monthPrice" id="monthPrice" value="{{room.monthPrice || 0}}" @change="update"/>
+                    </view>
+                </view>
+                <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">床位数量</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" name="bed" id="bed" value="{{room.bed || 1}}" @change="update"/>
+                    </view>
+                </view>
+                <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">可住人数</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" name="people" id="people" value="{{room.people || 1}}" @change="update"/>
+                    </view>
+                </view>
+                <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">房型面积(m<sup>2</sup>)</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" name="area" id="area" value="{{room.area || 0}}" @change="update"/>
+                    </view>
+                </view>
+                <view class="weui-cell weui-cell_switch" wx:if="shop.food">
+                    <view class="weui-cell__bd">提供早餐</view>
+                    <view class="weui-cell__ft">
+                        <switch name="breakfast" id="breakfast" @change="update"/>
+                    </view>
+                </view>                
+                <view class="weui-cell">
+                    <view class="weui-cell__bd">房型配置</view>
+                </view>
+                <view class="weui-cell">
+                    <view class="weui-cell__bd grid-wrapper">
+                        <span @tap="checked" id="wardrobe" class="allocation {{ room.wardrobe === 1 ? 'wardrobe-ok' : 'wardrobe-no' }}">柜子</span>
+                        <span @tap="checked" id="desk" class="allocation {{ room.desk === 1 ? 'desk-ok' : 'desk-no' }}">桌子</span>
+                        <span @tap="checked" id="chair" class="allocation {{ room.chair === 1 ? 'chair-ok' : 'chair-no' }}">椅子</span>
+                        <span @tap="checked" id="wifi" class="allocation {{ room.wifi === 1 ? 'wifi-ok' : 'wifi-no' }}">WIFI</span>
+                        <span @tap="checked" id="aircondition" class="allocation {{ room.aircondition === 1 ? 'aircondition-ok' : 'aircondition-no' }}">空调</span>
+                        <span @tap="checked" id="shower" class="allocation {{ room.shower === 1 ? 'shower-ok' : 'shower-no' }}">淋浴</span>
+                        <span @tap="checked" id="tv" class="allocation {{ room.tv === 1 ? 'tv-ok' : 'tv-no' }}">电视</span>
+                        <span @tap="checked" id="fridge" class="allocation {{ room.fridge === 1 ? 'fridge-ok' : 'fridge-no' }}">冰箱</span>
+                        <span @tap="checked" id="washer" class="allocation {{ room.washer === 1 ? 'washer-ok' : 'washer-no' }}">洗衣机</span>
+                    </view>
+                </view>
+                <NumberList :numbers.sync="numbers"/>                
+                <view class="weui-cell">
+                    <view class="weui-cell__bd">房型介绍</view>
+                </view>
+                <view class="weui-cell">
+                    <view class="weui-cell__bd">
+                        <textarea class="weui-textarea" name="describe" value="{{room.describe}}" placeholder="请输入房型介绍" style="height: 4.0em maxlength=100"/>
+                        <view class="weui-textarea-counter">{{room.describe ? room.describe.length : 0}}/100</view>
+                    </view>
+                </view>                                
+            </view>
+            <ActionPanel :opt.sync="opt" @remove.user="remove"/>
+        </form>
+    </view>
+    <SliderPanel :display.sync="isInnerDisplay" btn="false">
+        <view slot="title">房间类型</view>
+        <view slot="content" class="weui-cells-form">
+            <radio-group id="inner" @change="change" @tap="selectInner">
+                <label class="weui-cell weui-check__label" wx:for="{{innerCategories}}" wx:key="value">
+                    <radio class="weui-check" value="{{item.name}}" checked="{{input.inner === item.name}}"/>
+                    <view class="weui-cell__bd">{{item.name}}</view>
+                    <view class="weui-cell__ft weui-cell__ft_in-radio" wx:if="{{input.inner === item.name}}">
+                        <icon class="weui-icon-radio" type="success_no_circle" size="16"/>
+                    </view>
+                </label>
+            </radio-group>
+            <view class="weui-cell weui-cell_input weui-cell_vcode">
+                <view class="weui-cell__hd">
+                    <view class="weui-label"> + 新增类型</view>
+                </view>
+                <view class="weui-cell__bd">
+                    <input class="weui-input" id="newInner" @blur="input" placeholder="输入类型名称"/>
+                </view>
+                <view class="weui-cell__ft">
+                    <view class="weui-vcode-btn" @tap="addInner">确定</view>
+                </view>
+            </view>
+        </view>
+    </SliderPanel>
+</template>
+
+<script>
+import wepy from 'wepy'
+import base from '@/mixins/base'
+import room from '@/api/room'
+import input from '@/mixins/input'
+import FormTips from '@/components/weui/tips'
+import ImageUploader from '@/components/goods/image_uploader'
+import Tips from '@/utils/Tips'
+import ActionPanel from '@/components/common/action_panel'
+import SliderPanel from '@/components/common/slider_panel'
+import NumberList from '@/components/room/number_list'
+
+export default class RoomInfo extends wepy.page {
+  def = {
+    init: false,
+    input: {
+      status: true
+    },
+    shop: {},
+    room: {},
+    pictures: [],
+    numbers: [],
+    innerCategories: [],
+    display: false,
+    uploader: false,
+    isInnerDisplay: 'false',
+    opt: 'create'
+  };
+
+  data = {...this.def}
+
+  async onLoad(option) {
+    const [roomInfo, categories] = await Promise.all([room.info(option.rid), room.getCategories(option.sid)])
+    this.shop = wepy.$instance.getShopInfo()
+    this.room = roomInfo
+    this.innerCategories = categories
+    this.pictures = this.room.images || []
+    if (option.rid) {
+      this.opt = 'edit'
+      this.numbers = this.room.numbers
+    } else {
+      this.numbers.push({})
+    }
+    this.loaded()
+  };
+
+  methods = {
+    update(e) {
+      this.room[e.currentTarget.id] = e.detail.value
+    },
+    change(e) {
+      this.room.categoryName = e.detail.value
+    },
+    checked(e) {
+      const propName = e.currentTarget.id
+      if (!this.room[propName]) {
+        this.room[propName] = 1
+      } else {
+        this.room[propName] ^= 1
+      }
+    },
+    async remove() {
+      const res = await Tips.confirm('确定要删除该房型？')
+      if (!res) return
+      await room.remove(this.room.id)
+      await Tips.success('删除成功')
+      wepy.navigateBack()
+    },
+    async submit({detail}) {
+      Object.assign(this.room, detail.value)
+      if (!this.room.categoryName) {
+        this.tips('房间类型不能为空')
+        return
+      }
+      let data = {images: []}
+      Tips.loading('提交中')
+      for (let picture of this.pictures) {
+        if (picture.temp) {
+          const result = await room.image(picture.url)
+          const image = JSON.parse(result)
+          data.images.push(image)
+        } else {
+          data.images.push(picture)
+        }
+      }
+      this.room.images = data.images
+      await room.save(this.room)
+      await Tips.success('提交成功!')
+      wepy.navigateBack()
+    },
+    async addInner() {
+      const name = this.input.newInner
+      if (!name) {
+        Tips.alert('请输入类型名称')
+        return
+      }
+      await room.addCategories(this.shop.id, name)
+      this.innerCategories = await room.getCategories(this.shop.id)
+      this.innerCategories.push({'id': 4, 'name': name, 'pid': 0})
+      this.loaded()
+    },
+    showInner() {
+      this.isInnerDisplay = 'true'
+    },
+    selectInner() {
+      this.isInnerDisplay = 'false'
+    },
+    toggle(value) {
+      this.uploader = value === 'true'
+    }
+  };
+
+  events = {};
+
+  computed = {};
+
+  components = {
+    Tips: FormTips,
+    NumberList: NumberList,
+    ActionPanel: ActionPanel,
+    SliderPanel: SliderPanel,
+    ImageUploader: ImageUploader
+  };
+
+  mixins = [base, input];
+
+  config= {
+    navigationBarTitleText: '房型信息'
+  };
+}
+</script>
+
+<style lang="scss">
+     @import "../../styles/variable";
+     @import "../../styles/sprite";
+    .shop-swiper{
+        height: rpx(375);
+        width: rpx(750);
+        image {
+            width: 100%;
+            height: rpx(375);
+        }
+    }
+</style>

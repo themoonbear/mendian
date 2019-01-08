@@ -1,0 +1,77 @@
+<template>
+    <view class="container" wx:if="{{init}}">
+        <view class="column">
+            <view class="title-box row-between">
+                <text class="muted lg">我管理的门店</text>
+            </view>
+            <view class="list-box column">
+                <repeat for="{{shops}}" key="index" index="index" item="item">
+                    <view @tap="enter({{item.id}})">
+                        <ShopItem :shop.sync="item"/>
+                    </view>
+                </repeat>
+            </view>
+        </view>
+        <Placeholder message="您还没有添加门店" :list.sync="shops"/>
+        <AddBar btnText="添加门店" @tap.user="add"/>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import shop from '@/api/shop'
+import auth from '@/api/auth'
+import base from '@/mixins/base'
+import Tips from '@/utils/Tips'
+import ShopItem from '@/components/shop/item'
+import Placeholder from '@/components/common/placeholder'
+import AddBar from '@/components/common/add_bar'
+
+export default class ShopList extends wepy.page {
+  def = {
+    shops: [],
+    init: false
+  };
+
+  data = {...this.def};
+
+  async onLoad() {
+    this.shops = await shop.list()
+    this.loaded()
+  };
+
+  methods = {
+    async enter(shopId) {
+      await auth.setConfig('shop_id', shopId)
+      this.$switch('../home/index')
+    }
+  };
+
+  events = {
+    async add() {
+      Tips.loading()
+      this.$navigate('./info')
+    }
+  };
+  mixins = [base];
+  config = {
+    navigationBarTitleText: '选择门店'
+  };
+  components = {
+    ShopItem: ShopItem,
+    Placeholder: Placeholder,
+    AddBar: AddBar
+  };
+}
+</script>
+
+<style lang="scss">
+  @import "../../styles/variable";
+  .title-box{
+    padding: 15rpx 30rpx;
+  }
+  .list-box{
+    background: white;
+    border-bottom: $border;
+  }
+</style>

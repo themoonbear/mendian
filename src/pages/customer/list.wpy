@@ -1,0 +1,60 @@
+<template>
+    <view class="container" wx:if="{{init}}">
+        <SearchBar :param.sync="search"/>
+        <view class="list-box">
+            <repeat for="{{users}}" key="index" index="index" item="item">
+                <navigator url="./info?id={{item.id}}">
+                    <CustomerItem :customer.sync="item"/>
+                </navigator>
+            </repeat>
+        </view>        
+        <Placeholder :list.sync="users" message="客人还在路上"/>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import base from '@/mixins/base'
+import customer from '@/api/customer'
+import SearchBar from '@/components/common/search_bar'
+import Placeholder from '@/components/common/placeholder'
+import CustomerItem from '@/components/customer/item'
+
+export default class CustomerList extends wepy.page {
+  def = {
+    init: false,
+    users: [],
+    search: {
+      placeholder: '请输入客户名称'
+    }
+  };
+
+  data = {...this.def};
+
+  async onLoad() {
+    const shopID = wepy.$instance.globalData.auth.shop_id
+    this.users = await customer.list(shopID)
+    this.loaded()
+  };
+  methods = {
+    info(id) {
+      this.$navigate('./info', {id})
+    }
+  };
+  components = {
+    Placeholder: Placeholder,
+    CustomerItem: CustomerItem,
+    SearchBar: SearchBar
+  };
+  mixins = [base];
+
+  config = {
+    navigationBarTitleText: '客户管理',
+    enablePullDownRefresh: true
+  }
+    }
+</script>
+
+<style lang="scss">
+    @import "../../styles/variable";
+</style>

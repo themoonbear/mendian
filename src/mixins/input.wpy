@@ -1,0 +1,76 @@
+<script>
+import wepy from 'wepy'
+import Lang from '../utils/Lang'
+import v from '../utils/Validate'
+export default class input extends wepy.mixin {
+  data = {
+    input: {}
+  }
+  onUnload() {
+    this.input = {}
+  }
+  isEmpty(str) {
+    return Lang.isEmpty(str)
+  }
+  iNotEmpty(str) {
+    return !Lang.isEmpty(str)
+  }
+  tips(message) {
+    this.$invoke('Tips', 'show', message)
+  }
+  check(rules) {
+    for (let rule of rules) {
+      const value = rule.value
+      if (rule.method !== 'noDuplicate' && Lang.isArray(value)) {
+        for (let innerValue of value) {
+          const isValid = this.execCheck(rule, innerValue)
+          if (!isValid) {
+            return false
+          }
+        }
+      } else {
+        const isValid = this.execCheck(rule, value)
+        if (!isValid) {
+          return false
+        }
+      }
+    }
+    return true
+  }
+  execCheck(rule, value) {
+    const method = v[rule.method].bind(v)
+    const isValid = method(value, rule.param)
+    if (!isValid) {
+      this.tips(rule.message)
+      return false
+    }
+    return true
+  }
+  onInput(e) {
+    const fieldName = e.currentTarget.id
+    this.input[fieldName] = e.detail.value
+  }
+  isPhoneValid(phone) {
+    if (this.isEmpty(phone)) {
+      this.tips('请输入手机号码')
+      return false
+    }
+    const reg = /^1[34578]\d{9}$/
+    if (!reg.test(phone)) {
+      this.tips('电话号码格式错误')
+      return false
+    }
+    return true
+  }
+  methods = {
+    input(e) {
+      const fieldName = e.currentTarget.id
+      this.input[fieldName] = e.detail.value
+    },
+    radio(e) {
+      const fieldName = e.currentTarget.id
+      this.input[fieldName] = e.detail.value
+    }
+  }
+}
+</script>

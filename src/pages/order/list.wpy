@@ -1,0 +1,102 @@
+<template>
+    <view class="container" wx:if="{{init}}">
+        <SearchBar :param="search"/>
+        <ZanTab :tab="tab" fixed="0" @change.user="changeTab"/>
+        <view class="main-box row">
+            <scroll-view scroll-y class="order-box" bindscrolltolower="onReachBottom">
+                <view class="order-list">
+                    <repeat for="{{list}}" key="index" index="index" item="item">
+                        <OrderItem :item.sync="item" @tap.user="tap"/>
+                    </repeat>
+                </view>
+            </scroll-view>
+        </view>
+    </view>
+</template>
+<script>
+
+import wepy from 'wepy'
+import base from '@/mixins/base'
+import order from '@/api/order'
+import SearchBar from '@/components/common/search_bar'
+import ZanTab from '@/components/zanui/tab'
+import OrderItem from '@/components/order/item'
+let total = null
+
+export default class OrderList extends wepy.page {
+  def = {
+    init: false,
+    list: [],
+    search: {
+      placeholder: '房间号码/客人姓名'
+    },
+    tab: {
+      list: [
+                {id: 0, title: '所有订单'},
+                {id: 1, title: '待入住'},
+                {id: 2, title: '待结算'},
+                {id: 3, title: '待退款'}
+      ],
+      selectedID: 0,
+      scroll: false
+    }
+  };
+
+  data = {...this.def};
+
+  mixins = [base];
+
+  components = {
+    SearchBar: SearchBar,
+    ZanTab: ZanTab,
+    OrderItem: OrderItem
+  }
+
+  async onLoad() {
+    const shopID = wepy.$instance.globalData.auth.shop_id
+    total = await order.list(shopID)
+    this.reload()
+    this.loaded()
+  };
+
+  reload() {
+    const that = this
+    that.list = total.filter(o => {
+      return o.state === that.tab.selectedID || that.tab.selectedID === 0
+    })
+  };
+
+  methods = {
+    tap(item) {
+      switch (item.state) {
+        case 1:
+          this.$navigate(`../room/checkin?orderID=${item.id}`)
+          break
+        case 2:
+          break
+        case 3:
+          break
+      }
+    },
+    changeTab(data) {
+      this.tab.selectedID = data.selectedID
+      this.reload()
+    }
+  }
+}
+</script>
+<style lang="scss">
+
+@import "../../styles/variable";
+
+.main-box {
+    width: 100%;
+    .order-box{
+        flex: 1;
+        height: 100%;
+        .order-list{
+            /* background-color: #fff; */
+        }
+    }
+}
+</style>

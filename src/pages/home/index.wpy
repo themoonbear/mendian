@@ -1,0 +1,283 @@
+<template>
+  <view class="container" wx:if="{{init}}">
+    <view class="shop-box row-between">
+        <text class="sm">{{shop.name}}</text>
+        <button plain="true" open-type="contact">
+            <image class="icon mr20" src="/images/icons/customer_service.png"/>
+        </button>
+    </view>
+    <view class="today-box">
+        <view class="column-center">
+            <text class="xl">今日付款金额(元)</text>
+            <text class="today-price-text">{{today.income}}</text>
+        </view>
+        <view class="today-kpi-box row-around">
+            <view class="column-center">
+                <text>付款订单数</text>
+                <text class="lg mt20">{{today.paymentOrder}}</text>
+            </view>
+            <view class="vr"/>
+            <view class="column-center">
+                <text>入住人数</text>
+                <text class="lg mt20">{{today.guess}}</text>
+            </view>
+            <view class="vr"/>
+            <view class="column-center">
+                <text>剩余客房数</text>
+                <text class="lg mt20">{{today.rooms}}</text>
+            </view>
+        </view>
+    </view>
+    <view>
+        <view class="count-box row-around bg-white">
+            <navigator class="count-item column-center" @tap="order('2')" open-type="switchTab" url="../order/list">
+                <text class="count-value">{{order.n2}}</text>
+                <text class="muted">待入住订单</text>
+            </navigator>
+            <view class="vr"/>
+            <navigator class="count-item column-center" @tap="order('3')" open-type="switchTab" url="../order/list">
+                <text class="count-value">{{order.n3}}</text>
+                <text class="muted">待结算订单</text>
+            </navigator>
+            <view class="vr"/>
+            <navigator class="count-item column-center" @tap="order('4')" open-type="switchTab" url="../order/list">
+                <text class="count-value">{{order.n4}}</text>
+                <text class="muted">待退款订单</text>
+            </navigator>
+        </view>
+        <view class="count-box row-around bg-white">
+            <view class="count-item column-center">
+                <text class="count-value">{{month.paymentOrder}}</text>
+                <text class="muted">本月订单数</text>
+            </view>
+            <view class="vr"/>
+            <view class="count-item column-center">
+                <text class="count-value">{{month.income}}</text>
+                <text class="muted">本月成交额</text>
+            </view>
+            <view class="vr"/>
+            <view class="count-item column-center">
+                <text class="count-value">{{month.guess}}</text>
+                <text class="muted">本月入住人数</text>
+            </view>
+        </view>
+    </view>
+    <view class="operation-box">
+        <view class="operation-row row-around">
+            <navigator class="column-center" url="../shop/info?sid={{shop.id}}">
+                <image src="/images/home/shop.png"/>
+                <text>门店信息</text>
+            </navigator>
+            <navigator class="column-center" url="../room/type_list?sid={{shop.id}}">
+                <image src="/images/home/bed.png"/>
+                <text>房型管理</text>
+            </navigator>
+            <navigator class="column-center" url="../staff/list?sid={{shop.id}}">
+                <image src="/images/home/staff.png"/>
+                <text>店员管理</text>
+            </navigator>
+        </view>
+        <view class="hr"/>
+        <view class="operation-row row-around">
+            <navigator class="column-center" url="../room/state_list?sid={{shop.id}}">
+                <image src="/images/home/time.png"/>
+                <text>实时房态</text>
+            </navigator>
+            <navigator class="column-center" url="../order/list">
+                <image src="/images/home/order.png"/>
+                <text>订单管理</text>
+            </navigator>
+            <navigator class="column-center" url="../customer/list">
+                <image src="/images/home/customer.png"/>
+                <text>客户管理</text>
+            </navigator>
+        </view>
+    </view>
+  </view>
+  <view class="tab-border"/>
+</template>
+<script>
+import wepy from 'wepy'
+import count from '@/api/count'
+import shop from '@/api/shop'
+import base from '@/mixins/base'
+import Event from '@/utils/Event'
+import Tips from '@/utils/Tips'
+
+let interval = null
+const REFRESH_TIME = 60 * 1000
+
+export default class Home extends wepy.page {
+  def = {
+    today: {},
+    month: {},
+    order: {},
+    shop: {},
+    init: false,
+    show: false
+  };
+
+  data = {...this.def};
+
+  async onLoad() {
+    this.shop = await shop.info(wepy.$instance.globalData.auth.shop_id)
+    wepy.$instance.setShopInfo(this.shop)
+    interval = setInterval(async () => {
+      await this.reload()
+    }, REFRESH_TIME)
+    await this.reload()
+    Event.listen(Event.USER_LOGOUT, this.clear, this)
+  };
+
+  async onShow() {
+    this.show = true
+  };
+
+  clear() {
+    this.init = false
+  };
+
+  onHide() {
+    this.show = false
+    clearInterval(interval)
+  };
+
+  onUnload() {
+    clearInterval(interval)
+  };
+
+  async reload() {
+    Tips.setLoading()
+    const [today, month, order] = await Promise.all([count.today(), count.month(), count.order()])
+    this.today = today
+    this.month = month
+    this.order = order
+    this.loaded()
+    if (this.show) {
+      this.compareOrderStatus(order)
+    }
+    wepy.setStorageSync('order_count', order)
+  };
+
+  compareOrderStatus(curStatus) {
+    const preStatus = wepy.getStorageSync('order_count')
+    const auto = this.shop.autoOrder
+    if (!preStatus) {
+      return
+    }
+    let hasNewOrder = (auto === 0 ? (preStatus.n2 < curStatus.n2) : (preStatus.n9 < curStatus.n9 || preStatus.n3 < curStatus.n3))
+    if (hasNewOrder) {
+      Tips.modal('您有新的订单，请及时处理')
+    }
+  };
+
+  async onPullDownRefresh() {
+    await this.reload()
+    wepy.stopPullDownRefresh()
+  };
+
+  onShareAppMessage() {
+    const title = '有客门店助手'
+    const url = '@/pages/home/index'
+    return Tips.share(title, url, title)
+  };
+
+  methods = {
+    service() {
+      this.$root.$navigate('../customer/index')
+    },
+    order(status) {
+      this.$preload('status', status)
+      this.$navigate('../order/list')
+      Event.emit(Event.ORDER_TAB_UPDATE, status)
+    },
+    async scan() {
+      try {
+        const data = await wepy.scanCode()
+        Tips.loading('扫描中')
+        console.log('scan:', data)
+      } catch (e) {
+        console.error(e.message)
+      } finally {
+        Tips.loaded()
+      }
+    }
+
+  };
+  config = {
+    enablePullDownRefresh: true,
+    navigationBarTitleText: ''
+  };
+  mixins = [base];
+}
+</script>
+
+<style lang="scss">
+ @import "../../styles/variable";
+
+.shop-box{
+    background-color: $color-primary;
+    padding-left: 20rpx;
+    text{color: #fff;}
+}
+
+.today-box{
+    background-color: $color-primary;
+    padding: 40rpx 0;
+    text{color: #fff;}
+    .today-price-text{
+        font-size: 80rpx;
+        margin-top: 40rpx;
+        margin-bottom: 40rpx;
+    }
+    .vr{
+        width: 2px;
+        height: 30rpx;
+        background-color: #fff;
+    }
+    .today-kpi-box .column-center{
+        width: 250px;
+    }
+}
+
+.count-box{
+    padding: 20rpx 0;
+    text{font-size: $text-lg}
+    border-bottom: $border;
+    .vr{
+        width: 1px;
+        height: 100rpx;
+        background-color: $color-border;
+    }
+    .count-value{
+        font-size:$text-xl;
+        margin-bottom: 20rpx;
+    }
+    .count-item{
+        width: 250rpx;
+    }
+}
+
+.operation-box{
+    background-color: #fffcfc;
+    margin-bottom: 20rpx;
+    padding-top: 35rpx;
+    padding-bottom: 35rpx;
+    border-bottom: $border;
+
+    image{
+        height: 90rpx;
+        width: 90rpx;
+    }
+    .hr{
+        height: 40rpx;
+        width: 100%;
+    }
+    .operation-row{
+        text{
+            color: $color-weak;
+            margin-top: 10rpx;
+        }
+    }
+}
+</style>

@@ -1,0 +1,97 @@
+<template>
+    <view class="container" wx:if="{{init}}">
+      <view class="weui-cells__title">基本信息</view>
+      <view class="weui-cells weui-cells_after-title">
+        <view class="weui-cell">
+          <view class="weui-cell__bd">房间号码</view>
+          <view class="weui-cell__ft">{{info.number}}</view>
+        </view>
+        <view class="weui-cell">
+          <view class="weui-cell__bd">房间类型</view>
+          <view class="weui-cell__ft">{{info.categoryName}}</view>
+        </view>
+        <view class="weui-cell">
+          <view class="weui-cell__bd">床位数</view>
+          <view class="weui-cell__ft">{{info.bed}}</view>
+        </view>
+        <view class="weui-cell">
+          <view class="weui-cell__bd">当前状态</view>
+          <view class="weui-cell__ft">{{info.state}}</view>
+        </view>
+      </view>
+      <BookGuessPanel :guess.sync="book_guess" title="预定客人"/>
+      <InGuessPanel :guess.sync="in_guess" title="已住客人"/>
+    </view>    
+</template>
+
+<script>
+
+import wepy from 'wepy'
+import base from '@/mixins/base'
+import GuessPanel from '@/components/room/guess_panel'
+
+export default class StateInfo extends wepy.page {
+  def = {
+    init: false,
+    info: {
+      number: 101,
+      bed: 1,
+      categoryName: '大床房',
+      state: '可入住'
+    },
+    book_guess: [
+      {
+        idcard: '33333333333',
+        name: '张有才',
+        avatar: 'http://img.leshare.shop/seller/shulanriyongpin.png',
+        checkin_time: '2018-12-29',
+        checkout_time: '2018-12-31'
+      },
+      {
+        idcard: '33333333333',
+        name: '张有才',
+        avatar: 'http://img.leshare.shop/seller/shulanriyongpin.png',
+        checkin_time: '2018-12-29',
+        checkout_time: '2018-12-31'
+      }
+    ],
+    in_guess: [
+      {
+        idcard: '33333333333',
+        name: '张有才',
+        avatar: 'http://img.leshare.shop/seller/shulanriyongpin.png',
+        checkin_time: '2018-12-29',
+        checkout_time: '2018-12-31'
+      },
+      {
+        idcard: '33333333333',
+        name: '张有才',
+        avatar: 'http://img.leshare.shop/seller/shulanriyongpin.png',
+        checkin_time: '2018-12-29',
+        checkout_time: '2018-12-31'
+      }
+    ]
+  };
+
+  data = {...this.def};
+
+  mixins = [base];
+
+  components = {
+    BookGuessPanel: GuessPanel,
+    InGuessPanel: GuessPanel
+  };
+
+  config = {
+    navigationBarTitleText: '房态详情'
+  };
+
+  async onLoad() {
+    this.loaded()
+  }
+}
+</script>
+
+<style lang="scss">
+@import "../../styles/variable";
+</style>

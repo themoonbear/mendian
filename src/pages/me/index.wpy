@@ -1,0 +1,89 @@
+<template>
+    <view class="container">
+        <view class="info-box column-center">
+            <image class="avatar" src="{{shop.avatar}}" />
+            <text class="name">{{shop.name}}</text>
+        </view>
+        <view class="weui-cells">
+            <view class="weui-cell">
+                <view class="weui-cell__bd">软件版本</view>
+                <view class="weui-cell__ft">{{me.version}}</view>
+            </view>
+            <view class="weui-cell">
+                <view class="weui-cell__bd">
+                    <view style="display: inline-block; vertical-align: middle">系统消息</view>
+                    <view class="weui-badge" style="margin-left: 5px;">8</view>
+                </view>
+                <view class="weui-cell__ft weui-cell__ft_in-access"/>
+            </view>
+            <view class="weui-cell" @tap="switchShop">
+                <view class="weui-cell__bd">切换店铺</view>
+                <view class="weui-cell__ft weui-cell__ft_in-access"/>
+            </view>
+            <view class="weui-cell" @tap="switchAccount">
+                <view class="weui-cell__bd">切换帐号</view>
+                <view class="weui-cell__ft weui-cell__ft_in-access"/>
+            </view>
+        </view>
+    </view>
+    <view class="tab-border"/>
+</template>
+<script>
+import wepy from 'wepy'
+import base from '@/mixins/base'
+import auth from '@/api/auth'
+import Tips from '@/utils/Tips'
+
+export default class Me extends wepy.page {
+  def = {
+    init: false,
+    me: {},
+    shop: {}
+  };
+  data = {...this.def};
+
+  mixins = [base];
+
+  async onLoad() {
+    this.me.phone = wepy.$instance.globalData.auth.phone
+    this.me.version = wepy.$instance.globalData.version
+    this.shop = wepy.$instance.globalData.shop
+    this.loaded()
+  };
+  methods = {
+    async switchAccount() {
+      const ret = await Tips.confirm('您确定要切换帐号吗?')
+      if (!ret) return
+      await auth.removeConfig('shop_id')
+      await auth.removeConfig('login_code')
+      this.$redirect('../login')
+    },
+    async switchShop() {
+      const ret = await Tips.confirm('您确定要切换门店吗?')
+      if (!ret) return
+      await auth.removeConfig('shop_id')
+      this.$redirect('../shop/list')
+    }
+  }
+}
+</script>
+<style lang="scss">
+  @import "../../styles/variable";
+  .info-box{
+    align-items: center;
+    height: 300rpx;
+    background-color: $color-primary;
+
+    .avatar{
+      height:160rpx;
+      width: 160rpx;
+      border-radius: 50%;
+    }
+
+    .name{
+      color: white;
+      font-size: $text-xxl;
+      margin-top: 20rpx;
+    }
+  }
+</style>

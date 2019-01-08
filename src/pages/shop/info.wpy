@@ -1,0 +1,254 @@
+<template>
+    <Tips/>
+    <view class="container" wx:if="{{init}}">
+        <form @submit="save">
+            <ImageUploader :pictures.sync="pictures" otherClass="shop-swiper" top="260" maxSize="6" @toggle.user="toggle"/>
+            <view class="hr"/>
+            <view class="weui-cells-form">
+                <view class="weui-cell">
+                    <view class="weui-cell__bd">
+                        <input class="shop-name" name="name" id="name" placeholder="请输入门店名称" value="{{shop.name}}" @change="update"/>
+                    </view>
+                </view>
+            </view>
+            </view>
+            <view class="hr"/>
+            <view class="weui-cells weui-cells-form">
+                <view class="weui-cell">
+                    <view class="weui-cell__bd">门店分类</view>
+                    <view class="weui-cell__ft" @tap="show">{{shop.categoryName || '请选择门店分类'}}</view>
+                </view>
+                <view class="weui-cell weui-cell_switch">
+                    <view class="weui-cell__bd">营业状态</view>
+                    <view class="weui-cell__ft">
+                        <switch checked="{{shop.state}}" name="state" id="state" @change="update"/>
+                    </view>
+                </view>
+                <view class="weui-cell weui-cell_switch">
+                    <view class="weui-cell__bd">自动接单</view>
+                    <view class="weui-cell__ft">
+                        <switch checked="{{shop.autoOrder}}" name="autoOrder" id="autoOrder" @change="update"/>
+                    </view>
+                </view>
+                <view class="weui-cell weui-cell_switch">
+                    <view class="weui-cell__bd">线下支付</view>
+                    <view class="weui-cell__ft">
+                        <switch checked="{{shop.offPay}}" name="offPay" id="offPay" @change="update"/>
+                    </view>
+                </view>
+                <view class="weui-cell weui-cell_switch">
+                    <view class="weui-cell__bd">提供餐饮</view>
+                    <view class="weui-cell__ft">
+                        <switch checked="{{shop.food}}" name="food" id="food" @change="update"/>
+                    </view>
+                </view>
+                <view class="weui-cell weui-cell_switch">
+                    <view class="weui-cell__bd">可按月付</view>
+                    <view class="weui-cell__ft">
+                        <switch checked="{{shop.monthPay}}" name="monthPay" id="monthPay" @change="update"/>
+                    </view>
+                </view>
+                <view class="weui-cell">
+                    <view class="weui-cell__bd" style="min-width:150rpx;">门店地址</view>
+                    <view @tap.stop="chooseLocation" style="min-width: 150rpx;">
+                        <view class="weui-cell__ft">{{shop.address || '请选择门店地址'}}</view>
+                    </view>
+                </view>
+            </view>
+            <view class="mt10"/>
+            <view class="weui-cells weui-cells-form">
+                <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label">联系电话</view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" name="phone" value="{{shop.phone}}" placeholder="请输入电话号码" id="phone" @change="update"/>
+                    </view>
+                </view>
+                <view class="weui-cell">
+                    <view class="weui-cell__bd">门店介绍</view>
+                </view>
+                <view class="weui-cell" wx:if="{{!uploader}}">
+                    <view class="weui-cell__bd">
+                        <textarea class="weui-textarea" name="describe" value="{{shop.describe}}" placeholder="请输入门店介绍" style="height: 4.0em maxlength=100"/>
+                        <view class="weui-textarea-counter">{{shop.describe ? shop.describe.length : 0}}/100</view>
+                    </view>
+                </view>
+            </view>
+            <view class="zan-panel">
+                <view class="zan-btns">
+                    <button class="zan-btn zan-btn--fill" form-type="submit">提交</button>
+                </view>
+            </view>
+        </form>
+        <SliderSelector :display.sync="display"
+                        :list.sync="categories"
+                        :title="categoriesTitle"
+                        displayDefault="{{false}}"
+                        @change.user="change"/>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import base from '@/mixins/base'
+import shop from '@/api/shop'
+import input from '@/mixins/input'
+import FormTips from '@/components/weui/tips'
+import ImageUploader from '@/components/goods/image_uploader'
+import Tips from '@/utils/Tips'
+import SliderSelector from '@/components/common/slider_selector'
+import WxUtils from '@/utils/WxUtils'
+
+export default class ShopInfo extends wepy.page {
+  data = {
+    init: false,
+    shop: {},
+    pictures: [],
+    categories: [],
+    display: false,
+    uploader: false
+  };
+
+  async onLoad(option) {
+    const [info, categories] = await Promise.all([shop.info(option.sid), shop.getShopCategories()])
+    this.shop = info
+    this.shop.autoOrder = this.shop.autoOrder !== 0
+    this.shop.offPay = this.shop.offPay !== 0
+    this.shop.monthPay = this.shop.monthPay !== 0
+    this.shop.food = this.shop.food === 1
+    this.shop.phone = this.shop.phone || wepy.$instance.globalData.auth.phone
+    this.categories = categories
+    this.pictures = this.shop.images || []
+    this.loaded()
+  };
+
+  methods = {
+    update(e) {
+      this.shop[e.currentTarget.id] = e.detail.value
+    },
+    chooseLocation() {
+      wepy.chooseLocation({
+        type: 'wgs84'
+      }).then(res => {
+        this.shop.location = {latitude: res.latitude, longitude: res.longitude}
+        this.shop.address = res.address || '请选择门店地址'
+        this.$apply()
+      }).catch(err => {
+        console.log(err.errMsg)
+        this.tips('门店地址不能为空')
+      })
+    },
+    async save({detail}) {
+      Object.assign(this.shop, detail.value)
+      if (!this.shop.name) {
+        this.tips('门店名称不能为空')
+        return
+      }
+      if (!this.shop.categoryName) {
+        this.tips('门店分类不能为空')
+        return
+      }
+      if (!this.shop.address || this.shop.address === '请选择门店地址') {
+        this.tips('门店地址不能为空')
+        return
+      }
+      if (!this.isPhoneValid(this.shop.phone)) {
+        return
+      }
+      this.shop.autoOrder = this.shop.autoOrder ? 1 : 0
+      this.shop.offPay = this.shop.offPay ? 1 : 0
+      this.shop.monthPay = this.shop.monthPay ? 1 : 0
+      this.shop.food = this.shop.food ? 1 : 0
+
+      let data = {images: []}
+      Tips.loading('提交中')
+      for (let picture of this.pictures) {
+        if (picture.temp) {
+          const result = await shop.image(picture.url)
+          console.log(result)
+          const image = JSON.parse(result)
+          data.images.push(image)
+        } else {
+          data.images.push(picture)
+        }
+      }
+      this.shop.images = data.images
+      await shop.updateShop(this.shop)
+      await Tips.success('提交成功!')
+      wepy.navigateBack()
+    },
+    show() {
+      this.display = 'true'
+    },
+    toggle(value) {
+      this.uploader = value === 'true'
+    },
+    async avatar() {
+      try {
+        const param = {
+          count: 1,
+          sizeType: ['compressed']
+        }
+        const file = await WxUtils.chooseImage(param, 2)
+        if (file.length === 0) {
+          return
+        }
+        Tips.loading('上传中')
+        const result = await shop.image(file[0])
+        const image = JSON.parse(result)
+        this.shop.avatar = image.url
+        this.$apply()
+      } finally {
+        Tips.loaded()
+      }
+    },
+    change({selectedId, selectedName}) {
+      this.shop.categoryName = selectedName
+    }
+  };
+
+  events = {
+  };
+
+  computed = {};
+
+  components = {
+    Tips: FormTips,
+    SliderSelector: SliderSelector,
+    ImageUploader: ImageUploader
+  };
+
+  mixins = [base, input];
+
+  config = {
+    navigationBarTitleText: '门店信息'
+  };
+}
+</script>
+
+<style lang="scss">
+  @import "../../styles/variable";
+
+  .shop-swiper{
+      height: rpx(375);
+      width: rpx(750);
+      image {
+          width: 100%;
+          height: rpx(375);
+      }
+  }
+
+  .name-box {
+      background-color: #fff;
+      padding: rpx(20);
+      height: rpx(60);
+
+      .shop-name{
+          margin-left: rpx(20);
+          font-size: $text-xxl;
+          letter-spacing: 2px;
+          flex-grow: 1;
+      }
+  }
+</style>

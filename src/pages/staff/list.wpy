@@ -1,0 +1,72 @@
+<template>
+    <view class="container" wx:if="{{init}}">
+        <view class="column">
+            <view class="title-box row-between">
+                <text class="muted lg">我管理的店员</text>
+            </view>
+            <view class="list-box column">
+                <repeat for="{{staffs}}" key="index" index="index" item="item">
+                    <navigator url="info?id={{item.id}}">
+                        <Item :item.sync="item"></Item>
+                    </navigator>
+                </repeat>
+            </view>
+        </view>
+        <Placeholder :list.sync="staffs" message="您还没有添加店员"/>
+        <AddBar btnText="添加店员" @tap.user="add"/>
+    </view>
+</template>
+<script>
+import wepy from 'wepy'
+import staff from '@/api/staff'
+import base from '@/mixins/base'
+import Tips from '@/utils/Tips'
+import Item from '@/components/common/item'
+import Placeholder from '@/components/common/placeholder'
+import AddBar from '@/components/common/add_bar'
+
+export default class StaffList extends wepy.page {
+  def = {
+    staffs: [],
+    init: false
+  };
+
+  data = {...this.def};
+
+  async onLoad(option) {
+    this.staffs = await staff.list(option.sid)
+    this.loaded()
+  };
+
+  methods = {};
+
+  events = {
+    async add() {
+      Tips.loading()
+      this.$navigate('./info')
+    }
+  };
+
+  mixins = [base];
+
+  config = {
+    navigationBarTitleText: '店员管理'
+  };
+
+  components = {
+    Item: Item,
+    Placeholder: Placeholder,
+    AddBar: AddBar
+  };
+}
+</script>
+<style>
+@import "../../styles/variable";
+.title-box {
+    padding: 15rpx 30rpx;
+}
+.list-box{
+    background: #fff;
+    border-bottom: $border;
+}
+</style>
