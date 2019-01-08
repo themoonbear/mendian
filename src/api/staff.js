@@ -2,7 +2,7 @@ import base from './base'
 
 export default class staff extends base {
   static async list(sid) {
-    const url = `${this.baseUrl}/shop/${sid}/staff`
+    const url = `${this.baseUrl}/staff/list/${sid}`
     return await this.get(url)
   }
   static async info(id) {

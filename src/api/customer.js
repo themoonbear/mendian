@@ -2,7 +2,7 @@ import base from './base'
 
 export default class customer extends base {
   static async list(shopID) {
-    const url = `${this.baseUrl}/shop/${shopID}/customer/list`
+    const url = `${this.baseUrl}/customer/list/${shopID}`
     return await this.get(url)
   }
   static async info(id) {
