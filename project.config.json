@@ -1,5 +1,5 @@
 {
-	"description": "这个门店管理助手",
+	"description": "有客门店助手",
 	"setting": {
 		"urlCheck": true,
 		"es6": false,
@@ -8,7 +8,7 @@
 		"newFeature": true
 	},
 	"compileType": "miniprogram",
-	"appid": "touristappid",
+	"appid": "wxcf0f775a7dea0aa6",
 	"projectname": "mendian",
 	"miniprogramRoot": "dist/",
 	"condition": {}

@@ -8,19 +8,15 @@
 </template>
 
 <script>
-  import wepy from 'wepy'
-  export default class Copyright extends wepy.component {
-    props = {
-      bottom: {
-        default: 'true'
-      },
-      version: {
-        default: '1.0.0'
-      }
-    };
+import wepy from 'wepy'
+export default class Copyright extends wepy.component {
+  props = {
+    bottom: {
+      default: 'true'
+    },
+    version: {
+      default: '1.0.0'
+    }
+  };
 }
 </script>
-
-<style lang="scss">
-  @import "../../styles/variable";
-</style>

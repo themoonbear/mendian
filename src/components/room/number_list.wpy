@@ -16,6 +16,7 @@ import Number from './number'
 export default class NumberList extends wepy.component {
   props = {
     numbers: {
+      default: [],
       twoWay: true
     }
   };

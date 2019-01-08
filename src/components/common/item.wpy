@@ -1,32 +1,32 @@
 <template>
-    <view class="item-box row">
-        <image class="item-icon icon-xl" src="{{item.avatar}}"/>
-        <text class="item-title xxl">{{item.name}}</text>
-    </view>
+  <view class="item-box row">
+    <image class="item-icon icon-xl" src="{{item.avatar}}"/>
+    <text class="item-title xxl">{{item.name}}</text>
+  </view>
 </template>
 <script>
-    import wepy from 'wepy'
-    export default class Item extends wepy.component {
-      props = {
-        item: {}
-      };
-      data = {};
-      methods = {};
-      events = {}
-    }
+import wepy from 'wepy'
+export default class Item extends wepy.component {
+  props = {
+    item: {}
+  };
+  data = {};
+  methods = {};
+  events = {};
+}
 </script>
 <style lang="scss">
 @import "../../styles/variable";
-.item-box{
-    padding: 20rpx 30rpx;
-    border-top: $border;
-    .item-icon{
-        background-color: #fff;
-        border-radius: 5px;
-        border: $border;
-    }
-    .item-title{
-        margin-left: 35rpx;
-    }
+.item-box {
+  padding: 20rpx 30rpx;
+  border-top: $border;
+  .item-icon {
+    background-color: #fff;
+    border-radius: 5px;
+    border: $border;
+  }
+  .item-title {
+    margin-left: 35rpx;
+  }
 }
 </style>

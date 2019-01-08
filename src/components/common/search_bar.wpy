@@ -1,14 +1,13 @@
 <template>
-    <view class="row search-bar-box">
-        <view class="content" @tap="search">
-            <icon class="weui-icon-search" type="search" size="14"/>
-            <text>{{param.placeholder || '请输入搜索内容……'}}</text>
-        </view>
+  <view class="row search-bar-box">
+    <view class="content" @tap="search">
+      <icon class="weui-icon-search" type="search" size="14"/>
+      <text>{{param.placeholder || '请输入搜索内容……'}}</text>
     </view>
+  </view>
 </template>
 
 <script>
-
 import wepy from 'wepy'
 
 export default class SearchBar extends wepy.component {
@@ -24,23 +23,21 @@ export default class SearchBar extends wepy.component {
 </script>
 
 <style lang="scss">
-
 @import "../../styles/variable";
-
-.search-bar-box{
-    background-color: $color-primary;
-    align-items: center;
-    height: 80rpx;
-    padding: 0 20rpx;
-    .content{
-        flex: 1;
-        background-color: #fff;
-        border-radius: 3px;
-        padding: 6rpx 20rpx;
-        text{
-            color: $color-muted;
-            font-size: $text-sm;
-        }
+.search-bar-box {
+  background-color: $color-primary;
+  align-items: center;
+  height: 80rpx;
+  padding: 0 20rpx;
+  .content {
+    flex: 1;
+    background-color: #fff;
+    border-radius: 3px;
+    padding: 6rpx 20rpx;
+    text {
+      color: $color-muted;
+      font-size: $text-sm;
     }
+  }
 }
 </style>

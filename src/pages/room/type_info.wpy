@@ -245,8 +245,6 @@ export default class RoomInfo extends wepy.page {
 </script>
 
 <style lang="scss">
-     @import "../../styles/variable";
-     @import "../../styles/sprite";
     .shop-swiper{
         height: rpx(375);
         width: rpx(750);
